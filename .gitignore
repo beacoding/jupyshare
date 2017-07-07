@@ -1,0 +1,7 @@
+dist/
+jupyshare.egg-info/
+ngrok.log
+venv/
+*.swp
+jupyshare/jshare.db
+*.pyc
