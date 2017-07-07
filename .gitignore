@@ -1,0 +1,4 @@
+dist/
+jupyshare.egg-info/
+ngrok.log
+venv/

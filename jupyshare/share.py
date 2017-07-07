@@ -1,0 +1,165 @@
+import subprocess 
+import re
+import os
+from clint.textui import colored
+import requests
+import webbrowser
+import argparse
+import time
+import sys
+import shelve
+
+def parser():
+    parser = argparse.ArgumentParser(description='Share Your Jupyter Notebook in the Cloud')
+    parser.add_argument('--browser', action='store', help='Either chrome, firefox, or safari', default='chrome')
+    parser.add_argument('action', action='store', help='Either release / kill / show')
+
+    args = parser.parse_args()
+    return args
+
+def get_notebooks(jshare_db):
+    notebooks = {}
+
+    if (sys.version_info > (3, 0)):
+        stdoutdata = subprocess.getoutput("jupyter notebook list")
+    else:
+        stdoutdata = subprocess.check_output("jupyter notebook list", shell=True)
+
+    x = stdoutdata.split("http://localhost:")[1:]
+
+    for val in x:
+        separated = val.split('::')
+        location = separated[1].strip()
+        port_token = separated[0].split("token=")
+        port, token = re.sub(r'[?|$|.|!/\/]',r'',port_token[0]), port_token[1].strip()
+        try:
+            jshare_db[port]
+            ngrok_processes, ngrok_dict = get_live_notebooks()
+
+            if port not in ngrok_dict:
+                del jshare_db[port]
+                raise Exception
+
+        except Exception:
+            notebooks[port] = [location, token]
+
+    return notebooks
+
+def get_live_notebooks(jshare_db):
+    if len(jshare_db.keys()) == 0:
+        print(colored.green('You have no live notebooks right now'))
+        sys.exit(0)
+    print(colored.green('\nThese are your live notebooks right now:'))
+    for key in jshare_db:
+        print('     {} {}'.format(colored.cyan('| {} |'.format(key)), jshare_db[key][0]))
+        print('              {}'.format(colored.magenta(jshare_db[key][1])))
+
+def get_live_processes():
+    if (sys.version_info > (3, 0)):
+        ngrok_processes = list(filter(lambda s: s.find("ngrok http") > -1, subprocess.getoutput("ps -o pid -o args").split("\n")))
+    else:
+        ngrok_processes = list(filter(lambda s: s.find("ngrok http") > -1, subprocess.check_output("ps -o pid -o args", shell=True).split("\n")))
+    ngrok_dict = dict(list(map(lambda x: tuple(reversed(x.split(" ngrok http "))), ngrok_processes)))
+
+    return ngrok_processes, ngrok_dict
+
+def kill(jshare_db):
+    ngrok_processes, ngrok_dict = get_live_processes()
+
+    if len(ngrok_processes) == 0:
+        print(colored.green('NO NOTEBOOKS ARE IN THE CLOUD'))
+        sys.exit(0)
+    
+    print(colored.green("\nWhich notebook do you want to kill? Type 'all' if you want to shut everything down"))
+    
+    for i, key in enumerate(ngrok_dict):
+        print('     {} {}'.format(colored.cyan('| {} |'.format(key)), jshare_db[key][0]))
+
+    while(1):
+        if (sys.version_info > (3, 0)):
+            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
+        else:
+            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+
+        if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
+            sys.exit(0)
+        if port_chosen == 'all':
+            for key in ngrok_dict:
+                os.system('kill {}'.format(ngrok_dict[key]))
+                print(colored.green("Killed notebook listening on port {}".format(key)))
+            jshare_db.clear()
+            sys.exit(0)
+        if port_chosen in ngrok_dict:
+            break
+        else:
+            print(colored.red('ERROR: MUST ENTER A VALID NOTEBOOK PORT'))
+            continue
+
+    os.system('kill {}'.format(ngrok_dict[port_chosen]))
+    del jshare_db[port_chosen]
+    print(colored.green("Killed notebook listening on port {}".format(port_chosen)))
+    sys.exit(0)
+
+def release(jshare_db, args):
+    print(colored.magenta("Grabbing open notebooks..."))
+    time.sleep(2)
+
+    notebooks = get_notebooks(jshare_db)
+
+    if len(notebooks) == 0:
+        print(colored.green('NO NOTEBOOKS OPEN'))
+        sys.exit(0)
+
+    print(colored.green('\nWhich notebook are you referring to?'))
+
+    for i, key in enumerate(notebooks):
+        print('     {} {}'.format(colored.cyan('| {} |'.format(key)), notebooks[key][0]))
+
+    while(1):
+        if (sys.version_info > (3, 0)):
+            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
+        else:
+            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+        if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
+            sys.exit(0)
+        if port_chosen in notebooks:
+            break
+        else:
+            print(colored.red('ERROR: MUST ENTER A VALID NOTEBOOK PORT'))
+            continue
+
+    os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
+
+    print(colored.magenta("Opening notebook on port {} up...".format(port_chosen)))
+    time.sleep(10)
+
+    r = requests.get('http://127.0.0.1:4040/api/tunnels')
+    r.raise_for_status()
+    ngrok_url = r.json()['tunnels'][0]['public_url']
+
+    notebook_url = ngrok_url + '/' + '?token=' + notebooks[port_chosen][1]
+
+    jshare_db[port_chosen] = [notebooks[key][0], notebook_url]
+
+    webbrowser.get(args.browser).open_new_tab(notebook_url)
+
+def main():
+    args = parser()
+    curdir = os.path.dirname(__file__)
+    jshare_db = shelve.open(os.path.join(curdir, 'jshare'))
+
+    if args.action == 'kill':
+        kill(jshare_db)
+    elif args.action == 'release':
+        release(jshare_db, args)
+    elif args.action == 'show':
+        get_live_notebooks(jshare_db)
+    else:
+        print(colored.red("Action must either be 'release' or 'kill' or 'show'"))
+        print(colored.green("Try jshare release"))
+
+    jshare_db.close()
+
+
+if __name__ == '__main__':
+    main()
