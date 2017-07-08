@@ -7,7 +7,6 @@ import webbrowser
 import argparse
 import time
 import sys
-import pickle
 import shelve
 
 def jupyshare_parser():
@@ -65,6 +64,7 @@ def get_live_notebooks(jshare_db):
             url = jshare_db[key][1]
             if key not in notebooks:
                 os.system('kill {}'.format(ngrok_dict[key]))
+                print(colored.magenta("Didn't find any notebooks on port {}. Killing ngrok connection.".format(key)))
                 del jshare_db[key]
             else:
                 print('     {} {}'.format(colored.cyan('| {} |'.format(key)), location))
@@ -95,6 +95,7 @@ def kill(jshare_db):
         if is_in_db(jshare_db, key):
             if key not in notebooks:
                 os.system('kill {}'.format(ngrok_dict[key]))
+                print(colored.magenta("Didn't find any notebooks on port {}. Killing ngrok connection.".format(key)))
                 del jshare_db[key]
             else:
                 print('     {} {}'.format(colored.cyan('| {} |'.format(key)), jshare_db[key][0]))
