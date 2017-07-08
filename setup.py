@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
         name='jupyshare',
-        version='1.0.7',
+        version='1.0.8',
         entry_points = {
             'console_scripts': ['jupyshare=jupyshare.share:main']
             },
@@ -11,7 +11,7 @@ setup(
         author_email='bianca.subion@gmail.com',
         description='Share your python notebooks in the cloud',
         url='https://github.com/biancasubion/jupyshare',
-        download_url='https://github.com/biancasubion/jupyshare/archive/1.0.7.tar.gz',
+        download_url='https://github.com/biancasubion/jupyshare/archive/1.0.8.tar.gz',
         keywords=['jupyter', 'notebook', 'share'],
         install_requires=[
             'args==0.1.0',
