@@ -10,7 +10,7 @@ import sys
 import pickle
 import shelve
 
-def parser():
+def jupyshare_parser():
     parser = argparse.ArgumentParser(description='Share Your Jupyter Notebook in the Cloud')
     parser.add_argument('--browser', action='store', help='Either chrome, firefox, or safari', default='chrome')
     parser.add_argument('action', action='store', help='Either release / kill / show')
@@ -193,7 +193,7 @@ def release(jshare_db, args):
     webbrowser.get(args.browser).open_new_tab(notebook_url)
 
 def main():
-    args = parser()
+    args = jupyshare_parser()
     curdir = os.path.dirname(__file__)
     jshare_db = shelve.open(os.path.join(curdir, 'jshare'))
 
