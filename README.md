@@ -17,7 +17,7 @@ JupyShare is perfect for two things
 ### Security
 Ngrok provides a tunnel to your notebook so you definitely do not want to share the complete link (with the token and everything) with the world because any random person would pretty much have access to your own localhost and start running code on jupyter. To kill the connection to your notebook just run jupyshare kill.
 
-[edit] you can close your notebook, but it will only kill the ngrok process when you either run `jupyshare kill` or `jupyshare show` (as of 1.0.7 I didn't write a print statement that it killed the process)
+[edit] you can close your notebook, but it will only kill the ngrok process when you either run `jupyshare kill` or `jupyshare show` immediately after (as of 1.0.7 I didn't write a print statement that it killed the process)
 
 ### Prerequisites
 
