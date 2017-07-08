@@ -1,4 +1,4 @@
-import subprocess 
+import subprocess
 import re
 import os
 from clint.textui import colored
@@ -88,9 +88,9 @@ def kill(jshare_db):
     if len(ngrok_processes) == 0:
         print(colored.green('NO NOTEBOOKS ARE IN THE CLOUD'))
         sys.exit(0)
-    
+
     print(colored.green("\nWhich tunnel do you want to kill? Type 'all' if you want to shut everything down"))
-    
+
     for i, key in enumerate(ngrok_dict):
         if is_in_db(jshare_db, key):
             if key not in notebooks:
@@ -103,7 +103,7 @@ def kill(jshare_db):
             jshare_db[key] = ["Location unknown", "Url unknown"]
             print('     {} {}'.format(colored.cyan('| {} |'.format(key)), jshare_db[key][0]))
             print('              {}'.format(colored.magenta(jshare_db[key][1])))
-            
+
 
     while(1):
         if (sys.version_info > (3, 0)):
@@ -111,7 +111,7 @@ def kill(jshare_db):
         else:
             port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
 
-        if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
+        if port_chosen in ('q' , 'quit' , ':q'):
             sys.exit(0)
         if port_chosen == 'all':
             for key in ngrok_dict:
