@@ -11,9 +11,9 @@ JupyShare is perfect for two things
 2.  For showing something cool to a friend without having to tell them to download your masterpiece
 
 ### ToDo
-1.  done in v. 1.0.8 ~~Print statement when an ngrok process is killed~~
-2.  Try to see if there's a way to automatically kill the ngrok process once you close a notebook
-3.  Add a TTL for each ngrok process
+- [X]  done in v. 1.0.8 ~~Print statement when an ngrok process is killed~~
+- [ ]  Try to see if there's a way to automatically kill the ngrok process once you close a notebook
+- [ ] Add a TTL for each ngrok process
 
 ### Security
 Ngrok provides a tunnel to your notebook so you definitely do not want to share the complete link (with the token and everything) with the world because any random person would pretty much have access to your own localhost and start running code on jupyter. To kill the connection to your notebook just run jupyshare kill.
