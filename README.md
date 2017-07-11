@@ -1,5 +1,5 @@
 # JupyShare (now at 1.0.9)
-![alt text](https://image.ibb.co/cW5qHv/uuduu_Gey_R4ejygavn_Lew_PQ.png)
+![alt text](https://image.ibb.co/csbNEa/4_GY17m_Po_Rw_W5_Fd_Cy4_XF9b_A.png)
 
 JupyShare lets you release your notebook to the cloud and gives you a public endpoint for it through ngrok.
 
