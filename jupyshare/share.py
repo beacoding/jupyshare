@@ -191,19 +191,17 @@ def release(jshare_db, args):
         else:
             print(colored.red('ERROR: MUST ENTER A VALID NOTEBOOK PORT'))
             continue
-
+            
     if (args.ttl == "1"):
         print(colored.magenta('Set a default ttl of {} minute'.format(args.ttl)))
     else:
         print(colored.magenta('Set a default ttl of {} minutes'.format(args.ttl)))
-
 
     os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
     ngrok_processes, ngrok_dict = get_live_processes()
     pid = ngrok_dict[port_chosen]
 
     current_process = pid
-
     print(colored.magenta("Opening notebook on port {} up...".format(port_chosen)))
     time.sleep(10)
 
@@ -224,6 +222,7 @@ def release(jshare_db, args):
         webbrowser.get(args.browser).open_new_tab(notebook_url)
     except Exception as e:
         print(colored.red('No webbrowser available to open'))
+
 
     timeout = float(args.ttl) * 60
     os.system('(sleep {} && kill {})'.format(timeout, pid))
