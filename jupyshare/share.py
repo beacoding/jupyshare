@@ -8,15 +8,22 @@ import argparse
 import time
 import sys
 import shelve
+import signal
 
 try:
     raw_input           # Python 2
 except NameError:
     raw_input = input  # Python 3
 
+os.system("function timeout_ngrok_process() { perl -e 'alarm shift; exec @ARGV' \"$@\"; }")
+
+current_process = ""
+current_port = ""
+
 def jupyshare_parser():
     parser = argparse.ArgumentParser(description='Share Your Jupyter Notebook in the Cloud')
     parser.add_argument('--browser', action='store', help='Either chrome, firefox, or safari', default='chrome')
+    parser.add_argument('--ttl', action='store', help='Set a time to live for your notebook process in minutes', default='10')
     parser.add_argument('action', action='store', help='Either release / kill / show')
 
     args = parser.parse_args()
@@ -112,10 +119,7 @@ def kill(jshare_db):
 
 
     while(1):
-        if (sys.version_info > (3, 0)):
-            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
-        else:
-            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+        port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
 
         if port_chosen in ('q' , 'quit' , ':q'):
             sys.exit(0)
@@ -143,7 +147,18 @@ def is_in_db(jshare_db, port):
     except Exception as e:
         return False
 
+def is_float(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def release(jshare_db, args):
+    if not is_float(args.ttl):
+        print(colored.red('ERROR: MUST ENTER A VALID NUMBER FOR TTL'))
+        sys.exit(0)
+
     print(colored.magenta("Grabbing open notebooks..."))
     time.sleep(2)
 
@@ -168,10 +183,7 @@ def release(jshare_db, args):
             print('     {} {}'.format(colored.cyan('| {} |'.format(key)), notebooks[key][0]))
 
     while(1):
-        if (sys.version_info > (3, 0)):
-            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
-        else:
-            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+        port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
         if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
             sys.exit(0)
         if port_chosen in notebooks:
@@ -180,7 +192,17 @@ def release(jshare_db, args):
             print(colored.red('ERROR: MUST ENTER A VALID NOTEBOOK PORT'))
             continue
 
+    if (args.ttl == "1"):
+        print(colored.magenta('Set a default ttl of {} minute'.format(args.ttl)))
+    else:
+        print(colored.magenta('Set a default ttl of {} minutes'.format(args.ttl)))
+
+
     os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
+    ngrok_processes, ngrok_dict = get_live_processes()
+    pid = ngrok_dict[port_chosen]
+
+    current_process = pid
 
     print(colored.magenta("Opening notebook on port {} up...".format(port_chosen)))
     time.sleep(10)
@@ -192,11 +214,29 @@ def release(jshare_db, args):
     notebook_url = ngrok_url + '/' + '?token=' + notebooks[port_chosen][1]
 
     jshare_db[port_chosen] = [notebooks[port_chosen][0], notebook_url]
+    jshare_db.close()
+    current_port = port_chosen
+
 
     print(colored.green("Opened! To see a list of open notebooks try running jupyshare show"))
     print(colored.green("Your notebook is found on {}".format(notebook_url)))
+    try:
+        webbrowser.get(args.browser).open_new_tab(notebook_url)
+    except Exception as e:
+        print(colored.red('No webbrowser available to open'))
 
-    webbrowser.get(args.browser).open_new_tab(notebook_url)
+    timeout = float(args.ttl) * 60
+    os.system('(sleep {} && kill {})'.format(timeout, pid))
+
+    print(colored.magenta('\nExiting. Killing ngrok process listening on port {}'.format(current_port)))
+    curdir = os.path.dirname(__file__)
+    jshare_db = shelve.open(os.path.join(curdir, 'jshare'))
+    del jshare_db[port_chosen]
+    signal.signal(signal.SIGINT, handler)
+
+def handler(signum, frame):
+    print(colored.magenta('\nExiting. Killing ngrok process listening on port {}'.format(current_port)))
+    os.system('kill {}'.format(current_process))
 
 def main():
     args = jupyshare_parser()
@@ -214,6 +254,7 @@ def main():
         print(colored.green("Try jupyshare release"))
 
     jshare_db.close()
+
 
 
 if __name__ == '__main__':
