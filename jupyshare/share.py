@@ -112,10 +112,7 @@ def kill(jshare_db):
 
 
     while(1):
-        if (sys.version_info > (3, 0)):
-            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
-        else:
-            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+        port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
 
         if port_chosen in ('q' , 'quit' , ':q'):
             sys.exit(0)
@@ -143,6 +140,13 @@ def is_in_db(jshare_db, port):
     except Exception as e:
         return False
 
+def is_float(s):
+    try:
+        float(s)
+        return true
+    except ValueError:
+        return false
+
 def release(jshare_db, args):
     print(colored.magenta("Grabbing open notebooks..."))
     time.sleep(2)
@@ -168,10 +172,7 @@ def release(jshare_db, args):
             print('     {} {}'.format(colored.cyan('| {} |'.format(key)), notebooks[key][0]))
 
     while(1):
-        if (sys.version_info > (3, 0)):
-            port_chosen = input(colored.cyan('NOTEBOOK PORT: '))
-        else:
-            port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
+        port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
         if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
             sys.exit(0)
         if port_chosen in notebooks:
@@ -180,7 +181,17 @@ def release(jshare_db, args):
             print(colored.red('ERROR: MUST ENTER A VALID NOTEBOOK PORT'))
             continue
 
-    os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
+    while(1):
+        timeout = raw_input(colored.cyan('TTL IN MINUTES (DEFAULT IS 10): '))
+        if timeout in ('q' , 'quit' , ':q'):
+            sys.exit(0)
+        if is_float(timeout):
+            break
+        else:
+            print(colored.red('ERROR: MUST ENTER A VALID NUMBER'))
+            continue
+
+    os.system('{} ngrok http {} > ngrok.log &'.format(timeout, port_chosen))
 
     print(colored.magenta("Opening notebook on port {} up...".format(port_chosen)))
     time.sleep(10)
@@ -195,8 +206,11 @@ def release(jshare_db, args):
 
     print(colored.green("Opened! To see a list of open notebooks try running jupyshare show"))
     print(colored.green("Your notebook is found on {}".format(notebook_url)))
+    try:
+        webbrowser.get(args.browser).open_new_tab(notebook_url)
+    except Exception as e:
+        print(colored.red('No webbrowser available to open'))
 
-    webbrowser.get(args.browser).open_new_tab(notebook_url)
 
 def main():
     args = jupyshare_parser()
