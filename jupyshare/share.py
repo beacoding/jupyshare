@@ -10,7 +10,7 @@ import sys
 import shelve
 
 try:
-    raw_input           # Python 2
+    raw_input          # Python 2
 except NameError:
     raw_input = input  # Python 3
 
@@ -143,9 +143,9 @@ def is_in_db(jshare_db, port):
 def is_float(s):
     try:
         float(s)
-        return true
+        return True
     except ValueError:
-        return false
+        return False
 
 def release(jshare_db, args):
     print(colored.magenta("Grabbing open notebooks..."))
