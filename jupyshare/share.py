@@ -113,8 +113,7 @@ def kill(jshare_db):
 
     while(1):
         port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
-
-        if port_chosen in ('q' , 'quit' , ':q'):
+        if port_chosen.strip().lower() in ('q' , 'quit' , ':q'):
             sys.exit(0)
         if port_chosen == 'all':
             for key in ngrok_dict:
@@ -173,7 +172,7 @@ def release(jshare_db, args):
 
     while(1):
         port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
-        if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
+        if port_chosen.strip().lower() in ('q' , 'quit' , ':q'):
             sys.exit(0)
         if port_chosen in notebooks:
             break
@@ -183,7 +182,7 @@ def release(jshare_db, args):
 
     while(1):
         timeout = raw_input(colored.cyan('TTL IN MINUTES (DEFAULT IS 10): '))
-        if timeout in ('q' , 'quit' , ':q'):
+        if timeout.strip().lower() in ('q' , 'quit' , ':q'):
             sys.exit(0)
         if is_float(timeout):
             break
