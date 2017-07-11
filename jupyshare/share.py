@@ -197,7 +197,6 @@ def release(jshare_db, args):
     else:
         print(colored.magenta('Set a default ttl of {} minutes'.format(args.ttl)))
 
-
     os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
     ngrok_processes, ngrok_dict = get_live_processes()
     pid = ngrok_dict[port_chosen]
