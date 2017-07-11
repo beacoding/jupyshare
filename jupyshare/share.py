@@ -191,7 +191,7 @@ def release(jshare_db, args):
             print(colored.red('ERROR: MUST ENTER A VALID NUMBER'))
             continue
 
-    os.system('{} ngrok http {} > ngrok.log &'.format(timeout, port_chosen))
+    os.system('timeout_ngrok_process {}m ngrok http {} > ngrok.log &'.format(timeout, port_chosen))
 
     print(colored.magenta("Opening notebook on port {} up...".format(port_chosen)))
     time.sleep(10)
