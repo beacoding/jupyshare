@@ -11,7 +11,7 @@ import shelve
 import signal
 
 try:
-    raw_input           # Python 2
+    raw_input          # Python 2
 except NameError:
     raw_input = input  # Python 3
 
@@ -40,10 +40,11 @@ def get_notebooks(jshare_db):
     x = stdoutdata.split("http://localhost:")[1:]
 
     for val in x:
-        separated = val.split('::')
-        location = separated[1].strip()
-        port_token = separated[0].split("token=")
-        port, token = re.sub(r'[?|$|.|!/\/]',r'',port_token[0]), port_token[1].strip()
+        port_token, _, location = val.partition('::')
+        location = location.strip()
+        port, _, token = port_token.partition("token=")
+        port = re.sub(r'[?|$|.|!/\/]',r'', port)
+        token = token.strip()
         try:
             jshare_db[port]
             ngrok_processes, ngrok_dict = get_live_processes()
@@ -63,7 +64,7 @@ def get_notebooks(jshare_db):
     return notebooks
 
 def get_live_notebooks(jshare_db):
-    if len(jshare_db.keys()) == 0:
+    if len(jshare_db) == 0:
         print(colored.green('You have no live notebooks right now'))
         sys.exit(0)
     print(colored.green('\nThese are your live notebooks right now:'))
@@ -81,7 +82,6 @@ def get_live_notebooks(jshare_db):
             else:
                 print('     {} {}'.format(colored.cyan('| {} |'.format(key)), location))
                 print('              {}'.format(colored.magenta(url)))
-
 
 def get_live_processes():
     if (sys.version_info > (3, 0)):
@@ -116,7 +116,6 @@ def kill(jshare_db):
             jshare_db[key] = ["Location unknown", "Url unknown"]
             print('     {} {}'.format(colored.cyan('| {} |'.format(key)), jshare_db[key][0]))
             print('              {}'.format(colored.magenta(jshare_db[key][1])))
-
 
     while(1):
         port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
@@ -184,7 +183,7 @@ def release(jshare_db, args):
 
     while(1):
         port_chosen = raw_input(colored.cyan('NOTEBOOK PORT: '))
-        if port_chosen == 'q' or port_chosen == 'quit' or port_chosen == ':q':
+        if port_chosen in ('q' , 'quit' , ':q'):
             sys.exit(0)
         if port_chosen in notebooks:
             break
@@ -196,7 +195,6 @@ def release(jshare_db, args):
         print(colored.magenta('Set a default ttl of {} minute'.format(args.ttl)))
     else:
         print(colored.magenta('Set a default ttl of {} minutes'.format(args.ttl)))
-
 
     os.system('ngrok http {} > ngrok.log &'.format(port_chosen))
     ngrok_processes, ngrok_dict = get_live_processes()
@@ -216,7 +214,6 @@ def release(jshare_db, args):
     jshare_db[port_chosen] = [notebooks[port_chosen][0], notebook_url]
     jshare_db.close()
     current_port = port_chosen
-
 
     print(colored.green("Opened! To see a list of open notebooks try running jupyshare show"))
     print(colored.green("Your notebook is found on {}".format(notebook_url)))
@@ -254,7 +251,6 @@ def main():
         print(colored.green("Try jupyshare release"))
 
     jshare_db.close()
-
 
 
 if __name__ == '__main__':
