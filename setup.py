@@ -16,6 +16,6 @@ setup(
         install_requires=[
             'args==0.1.0',
             'clint==0.5.1',
-            'requests==2.13.0'
+            'requests==2.20.0'
             ],
         )
